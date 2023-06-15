@@ -1,0 +1,121 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script src="https://rawcdn.githack.com/Stuk/jszip/2ceb998e29d4171b4f3f2ecab1a2195c696543c0/dist/jszip.min.js"></script>
+
+
+
+<h1>VERY VERY heavily modfied version of <a href="https://stuk.github.io/jszip/documentation/examples/read-local-file-api.html">this</a></h1>
+<h1>I have no idea how javascript works</h1>
+
+<h3>Choose the local(s) zip file(s)</h3>
+<p class="note">Note : your browser will process the zip file, don't choose a file too big !</p>
+<input type="file" id="file" name="file" multiple /><br />
+
+<div id="result_block" class="hidden">
+  <h3>Content :</h3>
+  <div id="result"></div>
+</div>
+
+<button id="dl" onclick="dl()">try to download</button>
+
+
+
+
+<script>
+
+document.getElementById('dl').style.visibility = 'hidden';
+
+    // copy from https://stuk.github.io/jszip/documentation/examples/read-local-file-api.html
+    // modified by duck
+    
+    "use strict";
+    
+    var oldstr = "{\"_version\": ";
+
+    var $result = $("#result");
+    $("#file").on("change", function(evt) {
+        // remove content
+        $result.html("");
+        // be sure to show the results
+        $("#result_block").removeClass("hidden").addClass("show");
+    
+        // Closure to capture the file information.
+        function handleFile(f) {
+            var $title = $("<h4>", {
+                text : f.name
+            });
+            var $fileContent = $("<ul>");
+            $result.append($title);
+            $result.append($fileContent);
+    
+            var dateBefore = new Date();
+
+            
+
+            JSZip.loadAsync(f)
+                .then(function(zip) {
+
+                    
+                    window.zip = zip;
+
+                    var dateAfter = new Date();
+                    $title.append($("<span>", {
+                        "class": "small",
+                        text:" (loaded in " + (dateAfter - dateBefore) + "ms)"
+                    }));
+                    
+
+                    window.zip.forEach(function (relativePath, zipEntry) {
+
+                        var found = false;
+                        zipEntry.async("string").then( (content) => {
+                            
+                            if (content.includes(oldstr)) {
+                                console.log("found");
+                                found = true;
+                                window.zip.file(relativePath, content.replace(oldstr, "{\"_version\":"));
+                                console.log("file modified")
+                                $fileContent.append($("<li>", {
+                                    text : zipEntry.name + " was fixed"
+                                }));
+                            }
+
+                        });
+
+                        console.log(found);
+                        $fileContent.append($("<li>", {
+                            text : zipEntry.name
+                        }));
+
+                        console.log("foreach done");
+                        
+                    });
+
+                    setTimeout( function () {
+                        document.getElementById('dl').style.visibility = 'visible';
+                    }, 1000);
+
+                    return window.zip;
+
+                }, function (e) {
+                    $result.append($("<div>", {
+                        "class" : "alert alert-danger",
+                        text : "Error reading " + f.name + ": " + e.message
+                    }));
+                });
+        }
+        
+        var files = evt.target.files;
+        console.log(files);
+        for (var i = 0; i < files.length; i++) {
+            handleFile(files[i]);
+        }
+    });
+
+
+    function dl() {
+        window.zip.generateAsync({type:"base64"}).then(function (base64) {
+        window.location = "data:application/zip;base64," + base64;
+        });
+    }
+    
+    </script>
