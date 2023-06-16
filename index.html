@@ -1,12 +1,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 <script src="https://rawcdn.githack.com/Stuk/jszip/2ceb998e29d4171b4f3f2ecab1a2195c696543c0/dist/jszip.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.js"></script>
 
 
 <h1>VERY VERY heavily modfied version of <a href="https://stuk.github.io/jszip/documentation/examples/read-local-file-api.html">this</a></h1>
 <h1>I have no idea how javascript works</h1>
 
-<h3>Choose the local(s) zip file(s)</h3>
+<h3>Choose the local zip file</h3>
 <p class="note">Note : your browser will process the zip file, don't choose a file too big !</p>
 <input type="file" id="file" name="file" /><br />
 
@@ -15,14 +15,16 @@
   <div id="result"></div>
 </div>
 
-<button id="dl" onclick="dl()">try to download</button>
+<button id="dl1" onclick="dl(true)">try to download 1</button>
+<button id="dl2" onclick="dl(false)">try to download 2</button>
 
 
 
 
 <script>
 
-document.getElementById('dl').style.visibility = 'hidden';
+document.getElementById('dl1').style.visibility = 'hidden';
+document.getElementById('dl2').style.visibility = 'hidden';
 
     // copy from https://stuk.github.io/jszip/documentation/examples/read-local-file-api.html
     // modified by duck
@@ -91,7 +93,8 @@ document.getElementById('dl').style.visibility = 'hidden';
                     });
 
                     setTimeout( function () {
-                        document.getElementById('dl').style.visibility = 'visible';
+                        document.getElementById('dl1').style.visibility = 'visible';
+                        document.getElementById('dl2').style.visibility = 'visible';
                     }, 1000);
 
                     return window.zip;
@@ -112,10 +115,18 @@ document.getElementById('dl').style.visibility = 'hidden';
     });
 
 
-    function dl() {
+    function dl(dltype) {
+        if (dltype) {
         window.zip.generateAsync({type:"base64"}).then(function (base64) {
         window.location = "data:application/zip;base64," + base64;
         });
+        } else {
+            zip.generateAsync({type:"blob"})
+            .then(function (blob) {
+                saveAs(blob, "map.zip");
+            });
+
+        }
     }
     
     </script>
